@@ -1,5 +1,7 @@
 var restify = require('restify');
 var builder = require('botbuilder');
+var Client = require('node-rest-client').Client;
+var client = new Client();
 
 //=========================================================
 // Bot Setup
@@ -72,6 +74,19 @@ bot.dialog('/update', [
         //send call to server
         //get response from server
         //session.send response
+        sendRequest(session);
         session.endDialog();
     }
 ]);
+var sendRequest = function(session){
+    var args = {
+        data: { test: "hello" },
+        headers: { "Content-Type": "application/json" }
+    };
+    client.registerMethod("jsonMethod", "http://104.197.241.157:8080/v1/upgrade", "POST");
+    client.methods.jsonMethod(args, function (data, response) {
+        // parsed response body as js object
+        console.log(JSON.stringify(data));
+        session.send(JSON.stringify(data))
+    });
+}
