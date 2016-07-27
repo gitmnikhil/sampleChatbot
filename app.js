@@ -43,8 +43,8 @@ intents.onDefault([
 
 bot.dialog('/update', [
     function (session, args, next) {
-        if(session.dialogData.reAskuserResponse){
-            session.dialogData.reAskuserResponse = false;
+        if(session.reAskuserResponse){
+            session.reAskuserResponse = false;
             builder.Prompts.text(session, 'I am sorry, I could not understand. Do you want an upgrade recommendation? Yes/No');    
         }else{
             builder.Prompts.text(session, 'Welcome to opsfaq! Do you want an upgrade recommendation? Yes/No');    
@@ -58,7 +58,7 @@ bot.dialog('/update', [
             session.send('Thank you for our interaction. Ping me if you need me later');
             session.endDialog();
         }else{
-            session.dialogData.reAskuserResponse = true;
+            session.reAskuserResponse = true;
             session.replaceDialog('/update');
             return;
         }
