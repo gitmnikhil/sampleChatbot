@@ -4,20 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "engines": {
-    "node": "~4.4"
-  },
-  "scripts": {
     "start": "node app.js",
     "monitor": "nodemon app.js",
     "deploy": "gcloud app deploy"
+  },
+  "engines": {
+    "node": "~4.4"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "botbuilder": "^3.0.1",
+    "node-rest-client": "^2.0.1",
     "restify": "^4.1.1"
   }
 }
