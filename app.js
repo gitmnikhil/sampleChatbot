@@ -1,5 +1,7 @@
 var restify = require('restify');
 var builder = require('botbuilder');
+var Chatbot = require('./model/chatBot.js');
+var mongoose = require('mongoose');
 var Client = require('node-rest-client').Client;
 var client = new Client();
 
@@ -12,6 +14,8 @@ var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3798, function () {
    console.log('%s listening to %s', server.name, server.url); 
 });
+
+mongoose.connect('mongodb://104.198.234.74:27017/chatbot');
 
 // Create chat bot
 var connector = new builder.ChatConnector({
@@ -71,9 +75,23 @@ bot.dialog('/update', [
     function(session,results){
         session.dialogData.updateTwo = results.response;
         session.send("You provided '"+session.dialogData.updateOne + " "+session.dialogData.updateTwo+ "'. I am going to find out the upgrade recommendation based on your input and will ping you soon");
-        //send call to server
-        //get response from server
-        //session.send response
+        //initialize model
+        var chatInstance = new Chatbot();
+        chatInstance.userName = session.message.address.user.name;
+        chatInstance.timeStamp = new Date().getTime();
+        chatInstance.messenger = session.message.source;
+        chatInstance.messageOne = session.dialogData.updateOne;
+        chatInstance.messageTwo = session.dialogData.updateTwo;
+        console.log(chatInstance);
+        chatInstance.save(function(err) {
+            console.log(err)
+            if (err){
+                console.log(err)
+                return
+                //throw err;    
+            }
+            console.log("Instance saved")
+        });
         sendRequest(session);
         session.endDialog();
     }
