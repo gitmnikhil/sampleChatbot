@@ -17,6 +17,7 @@
     "botbuilder": "^3.0.1",
     "mongoose": "^4.5.7",
     "node-rest-client": "^2.0.1",
+    "request": "^2.74.0",
     "restify": "^4.1.1"
   }
 }

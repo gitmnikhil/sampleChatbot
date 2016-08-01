@@ -4,6 +4,7 @@ var Chatbot = require('./model/chatBot.js');
 var mongoose = require('mongoose');
 var Client = require('node-rest-client').Client;
 var client = new Client();
+var request = require('request');
 
 //=========================================================
 // Bot Setup
@@ -15,14 +16,14 @@ server.listen(process.env.port || process.env.PORT || 3798, function () {
    console.log('%s listening to %s', server.name, server.url); 
 });
 
-mongoose.connect('mongodb://104.198.234.74:27017/chatbot');
+mongoose.connect('mongodb://127.0.0.1:27017/chatbot');
 
 // Create chat bot
 var connector = new builder.ChatConnector({
-    appId: "63bf713a-ea95-495a-a285-67c0cdec5813",
-    appPassword: "bPSLoYd955CDhynX6pViPq7"
-    //appId: process.env.MICROSOFT_APP_ID,
-    //appPassword: process.env.MICROSOFT_APP_PASSWORD
+    //appId: "63bf713a-ea95-495a-a285-67c0cdec5813",
+    //appPassword: "bPSLoYd955CDhynX6pViPq7"
+    appId: process.env.MICROSOFT_APP_ID,
+    appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 var bot = new builder.UniversalBot(connector);
 server.post('/api/messages', connector.listen());
@@ -41,7 +42,51 @@ intents.matches(/^change name/i, [
 
 intents.onDefault([
     function (session, args, next) {
-        session.beginDialog('/update');
+        console.log("session",session.message.attachments)
+        session.beginDialog('/getOptions');
+    }
+]);
+
+bot.dialog('/getOptions', [
+    function (session, args, next) {
+        builder.Prompts.text(session, 'Please select option 1. Update 2. Attachment');    
+    },
+    function (session,results) {
+        if(results.response == 1){
+            session.beginDialog('/update');
+
+        }else if(results.response == 2){
+            session.beginDialog('/getAttachment')
+        }else{
+            session.replaceDialog('/getOptions');
+            return;
+        }
+    }
+]);
+bot.dialog('/getAttachment', [
+    function (session, args, next) {
+        builder.Prompts.text(session, 'Please provide the json file');    
+    },
+    function (session,results) {
+        if(session.message.attachments){
+            request.get({url:session.message.attachments[0].contentUrl}, function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    var chatInstance = new Chatbot();
+                    chatInstance.userName = session.message.address.user.name;
+                    chatInstance.timeStamp = new Date().getTime();
+                    chatInstance.messenger = session.message.source;
+                    chatInstance.messageOne = body;
+                    chatInstance.save(function(err) {
+                        if (err){
+                            console.log(err)
+                            return
+                            //throw err;    
+                        }
+                        console.log("Instance saved")
+                    });
+                }
+            });
+        }
     }
 ]);
 
@@ -103,8 +148,6 @@ var sendRequest = function(session){
     };
     client.registerMethod("jsonMethod", "http://104.197.241.157:8080/v1/upgrade", "POST");
     client.methods.jsonMethod(args, function (data, response) {
-        // parsed response body as js object
-        console.log(JSON.stringify(data));
         session.send(JSON.stringify(data))
     });
 }
